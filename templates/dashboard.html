@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Performance Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>📊 Ad Performance Dashboard</h1>
+
+    <!-- Ad Selection -->
+    <form method="get">
+        <label for="ad_id">Select Ad:</label>
+        <select name="ad_id" id="ad_id" onchange="this.form.submit()">
+            <option value="">All Ads</option>
+            {% for id in ad_ids %}
+                <option value="{{ id }}" {% if id == selected_ad %}selected{% endif %}>Ad {{ id }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <!-- Key Metrics -->
+    <h2>📌 Key Metrics</h2>
+    <p>💰 Total Spend: <strong>${{ total_spend | round(2) }}</strong></p>
+    <p>👀 Total Impressions: <strong>{{ total_impressions }}</strong></p>
+    <p>📊 Average CTR: <strong>{{ avg_ctr | round(2) }}%</strong></p>
+    <p>🛍️ Total Conversions: <strong>{{ total_conversions }}</strong></p>
+
+    <!-- Charts -->
+    <h2>📈 Ad Spend Over Time</h2>
+    <div>{{ spend_fig | safe }}</div>
+
+    <h2>📊 CTR & Conversions Over Time</h2>
+    <div>{{ ctr_fig | safe }}</div>
+
+</body>
+</html>

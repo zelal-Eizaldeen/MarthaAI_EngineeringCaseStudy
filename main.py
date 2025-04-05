@@ -1,32 +1,41 @@
-
-import random
-import pickle
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
 import pandas as pd
-import numpy as np
-from fastapi import FastAPI
-from pydantic import BaseModel
+import plotly.express as px
 
-model = 'ad_performance_model.pkl'
-#Initialize FastAPI app
+# Load data
+df = pd.read_csv("synthetic_ad_data.csv")
+df["date"] = pd.to_datetime(df["date"])
+
+# FastAPI app setup
 app = FastAPI()
-app
+templates = Jinja2Templates(directory="templates")
 
+@app.get("/")
+async def dashboard(request: Request, ad_id: int = None):
+    if ad_id is not None:
+        df_filtered = df[df["ad_id"] == ad_id]
+    else:
+        df_filtered = df  # Show all data if no ad is selected
 
-# API Request Model
-class AdPerformanceRequest(BaseModel):
-    spend: float
-    impressions: int
-    ctr: float
+    # Generate Plotly charts
+    spend_fig = px.line(df_filtered, x="date", y="ad_spend", title="📈 Ad Spend Over Time").to_html()
+    ctr_fig = px.bar(df_filtered, x="date", y=["ctr", "conversions"], title="📊 CTR & Conversions").to_html()
 
-@app.post("/predict")
-def predict_conversion(ad: AdPerformanceRequest):
-    features = np.array([[ad.spend, ad.impressions, ad.ctr]])
-    predicted_conversions = model.predict(features)[0]
-    return {"predicted_conversions": predicted_conversions}
+    # Get summary stats
+    total_spend = df_filtered["ad_spend"].sum()
+    total_impressions = df_filtered["impressions"].sum()
+    avg_ctr = df_filtered["ctr"].mean()
+    total_conversions = df_filtered["conversions"].sum()
 
-@app.get("/health")
-def health_check():
-    return {"status": "API is running"}
-
-"""#Testing FastAPI"""
-
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "spend_fig": spend_fig,
+        "ctr_fig": ctr_fig,
+        "total_spend": total_spend,
+        "total_impressions": total_impressions,
+        "avg_ctr": avg_ctr,
+        "total_conversions": total_conversions,
+        "ad_ids": df["ad_id"].unique(),
+        "selected_ad": ad_id
+    })

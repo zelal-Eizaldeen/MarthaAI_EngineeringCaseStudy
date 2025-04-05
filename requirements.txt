@@ -4,3 +4,8 @@ pandas
 uvicorn
 pydantic
 scikit-learn
+facebook-business
+python-dotenv
+matplotlib
+plotly
+jinja2
